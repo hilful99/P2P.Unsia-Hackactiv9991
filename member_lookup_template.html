@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Member Credit Risk Lookup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:#f0f2f5;color:#1f2328;font-size:14px;line-height:1.6}
+.header{background:#1a1f36;color:#fff;padding:20px 32px}
+.header h1{font-size:20px;font-weight:700}
+.header p{color:#9ba3c0;font-size:12px;margin-top:3px}
+.main{padding:24px 32px;max-width:1400px;margin:0 auto}
+.search-bar{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin-bottom:20px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end}
+.search-bar label{font-size:11px;font-weight:600;color:#57606a;text-transform:uppercase;letter-spacing:0.5px;display:block;margin-bottom:4px}
+.search-bar input,.search-bar select{border:1px solid #d1d5db;border-radius:6px;padding:8px 12px;font-size:13px;color:#1f2328;background:#fff;width:100%}
+.search-bar input:focus,.search-bar select:focus{outline:none;border-color:#3b82d4;box-shadow:0 0 0 3px rgba(59,130,212,0.15)}
+.field{flex:1;min-width:160px}
+.field.wide{flex:2;min-width:220px}
+.btn{background:#3b82d4;color:#fff;border:none;border-radius:6px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;align-self:flex-end;height:36px}
+.btn:hover{background:#2563eb}
+.btn.reset{background:#f7f8fa;color:#57606a;border:1px solid #d1d5db}
+.btn.reset:hover{background:#e5e7eb}
+.stats-row{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.stat-pill{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:10px 16px;font-size:12px;flex:1;min-width:120px}
+.stat-pill .n{font-size:22px;font-weight:700;color:#1f2328}
+.stat-pill .l{color:#57606a;font-size:11px;text-transform:uppercase;letter-spacing:0.4px;margin-top:2px}
+.stat-pill.red .n{color:#dc2626}
+.stat-pill.green .n{color:#16a34a}
+.stat-pill.orange .n{color:#ea580c}
+.stat-pill.blue .n{color:#2563eb}
+.table-wrap{background:#fff;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden}
+.table-top{padding:12px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center}
+.table-top strong{font-size:13px;font-weight:600}
+.table-top span{font-size:12px;color:#57606a}
+table{width:100%;border-collapse:collapse;font-size:12px}
+thead th{background:#f7f8fa;padding:10px 12px;text-align:left;font-weight:600;color:#57606a;border-bottom:1px solid #e5e7eb;white-space:nowrap;cursor:pointer;user-select:none}
+thead th:hover{background:#eef0f3}
+thead th .si{margin-left:4px;opacity:0.4;font-size:10px}
+thead th.sorted .si{opacity:1;color:#3b82d4}
+tbody tr{border-bottom:1px solid #f0f2f5;cursor:pointer;transition:background 0.1s}
+tbody tr:hover{background:#f7f8fa}
+tbody tr:last-child{border-bottom:none}
+td{padding:9px 12px;white-space:nowrap}
+.badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-current{background:#dcfce7;color:#15803d}
+.b-special{background:#fef9c3;color:#a16207}
+.b-sub{background:#ffedd5;color:#c2410c}
+.b-doubtful{background:#fee2e2;color:#b91c1c}
+.b-macet{background:#fecaca;color:#7f1d1d}
+.b-hi{background:#dbeafe;color:#1d4ed8}
+.b-fomo{background:#f3e8ff;color:#7e22ce}
+.b-income{background:#ecfdf5;color:#065f46}
+.b-gali{background:#fff7ed;color:#9a3412}
+.b-spec{background:#fdf2f8;color:#9d174d}
+.pagination{display:flex;gap:6px;padding:14px 20px;border-top:1px solid #e5e7eb;justify-content:flex-end;align-items:center;flex-wrap:wrap}
+.pagination button{border:1px solid #d1d5db;background:#fff;color:#1f2328;border-radius:5px;padding:5px 10px;font-size:12px;cursor:pointer}
+.pagination button:hover{background:#f0f2f5}
+.pagination button.active{background:#3b82d4;color:#fff;border-color:#3b82d4;font-weight:700}
+.pagination button:disabled{opacity:0.4;cursor:not-allowed}
+.pinfo{font-size:12px;color:#57606a;margin-right:8px}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:1000;justify-content:center;align-items:flex-start;padding:40px 16px;overflow-y:auto}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:12px;width:100%;max-width:680px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.25)}
+.modal-header{padding:18px 24px;background:#1a1f36;color:#fff;display:flex;justify-content:space-between;align-items:center}
+.modal-header h2{font-size:15px;font-weight:700}
+.modal-close{background:none;border:none;color:#9ba3c0;font-size:22px;cursor:pointer;line-height:1;padding:0}
+.modal-close:hover{color:#fff}
+.modal-body{padding:24px}
+.profile-top{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid #e5e7eb}
+.avatar{width:52px;height:52px;border-radius:50%;background:#3b82d4;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;flex-shrink:0}
+.profile-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.profile-sub{font-size:12px;color:#57606a;margin-bottom:8px}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.di{background:#f7f8fa;border-radius:6px;padding:10px 12px}
+.di .dk{font-size:10px;color:#57606a;text-transform:uppercase;letter-spacing:0.4px;font-weight:600;margin-bottom:3px}
+.di .dv{font-size:13px;font-weight:600;color:#1f2328}
+.risk-bar{margin-top:20px;padding-top:16px;border-top:1px solid #e5e7eb}
+.rb-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.rb-track{background:#e5e7eb;border-radius:4px;height:10px;overflow:hidden}
+.rb-fill{height:100%;border-radius:4px}
+.no-results{text-align:center;padding:60px;color:#57606a}
+.no-results .ico{font-size:40px;margin-bottom:12px}
+@media(max-width:768px){.main{padding:16px}.grid-2{grid-template-columns:1fr}.field{min-width:140px}.detail-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🔍 Member Credit Risk Lookup</h1>
+  <p>Cari &amp; filter profil risiko dari 100 debitur terdaftar &nbsp;|&nbsp; Source: members_100.csv</p>
+</div>
+
+<div class="main">
+  <div class="search-bar">
+    <div class="field wide">
+      <label>Cari Nama / Member ID</label>
+      <input type="text" id="searchName" placeholder="contoh: Andi, Budi Handoko, MBR_001..."/>
+    </div>
+    <div class="field">
+      <label>Status Kredit</label>
+      <select id="filterStatus">
+        <option value="">Semua Status</option>
+        <option>Current-Performing</option>
+        <option>Special-Mention-DPD1-30</option>
+        <option>Substandard-DPD31-60</option>
+        <option>Doubtful-DPD61-90</option>
+        <option>Default-Macet-TWP90</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Provinsi</label>
+      <select id="filterProvince"><option value="">Semua Provinsi</option></select>
+    </div>
+    <div class="field">
+      <label>Pekerjaan</label>
+      <select id="filterJob"><option value="">Semua Pekerjaan</option></select>
+    </div>
+    <div class="field">
+      <label>Jml App Aktif</label>
+      <select id="filterApps">
+        <option value="">Semua</option>
+        <option value="1">1 App</option>
+        <option value="2-3">2-3 Apps</option>
+        <option value="4-5">4-5 Apps</option>
+        <option value="6+">6+ Apps</option>
+      </select>
+    </div>
+    <button class="btn reset" id="btnReset">&#x21BA; Reset</button>
+  </div>
+
+  <div class="stats-row" id="statsRow"></div>
+
+  <div class="table-wrap">
+    <div class="table-top">
+      <strong id="tableTitle">100 Member Terdaftar</strong>
+      <span id="tableCount"></span>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th data-key="member_id">ID <span class="si">⇅</span></th>
+            <th data-key="nama_lengkap">Nama <span class="si">⇅</span></th>
+            <th data-key="usia">Usia <span class="si">⇅</span></th>
+            <th>Gender</th>
+            <th data-key="provinsi">Provinsi <span class="si">⇅</span></th>
+            <th>Pekerjaan</th>
+            <th data-key="pendapatan_bulanan_idr">Pendapatan <span class="si">⇅</span></th>
+            <th data-key="jumlah_app_aktif">Apps <span class="si">⇅</span></th>
+            <th data-key="days_past_due">DPD <span class="si">⇅</span></th>
+            <th data-key="financial_distress_index">FDI <span class="si">⇅</span></th>
+            <th data-key="status_kredit">Status Kredit <span class="si">⇅</span></th>
+            <th>Akar Masalah</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div id="noResults" class="no-results" style="display:none">
+      <div class="ico">🔍</div>
+      <div style="font-weight:600;margin-bottom:4px">Tidak ada member yang cocok.</div>
+      <div style="font-size:12px">Coba ubah kata kunci atau filter.</div>
+    </div>
+    <div class="pagination" id="pagination"></div>
+  </div>
+</div>
+
+<!-- Modal Detail -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modalTitle">Detail Member</h2>
+      <button class="modal-close" id="modalClose">&#x2715;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+var RAW_DATA = __MEMBERS_DATA__;
+var allData = RAW_DATA.slice();
+var filtered = allData.slice();
+var currentPage = 1;
+var pageSize = 15;
+var sortKey = '';
+var sortDir = 1;
+
+// populate dropdowns
+var provs = [...new Set(allData.map(function(d){return d.provinsi;}))].sort();
+var jobs  = [...new Set(allData.map(function(d){return d.pekerjaan;}))].sort();
+var pSel = document.getElementById('filterProvince');
+var jSel = document.getElementById('filterJob');
+provs.forEach(function(p){ var o=document.createElement('option'); o.textContent=p; pSel.appendChild(o); });
+jobs.forEach(function(j){  var o=document.createElement('option'); o.textContent=j; jSel.appendChild(o); });
+
+function formatIdr(n){ return 'Rp' + Math.round(n).toLocaleString('id-ID'); }
+
+function statusBadge(s){
+  var cls = s.includes('Current')?'b-current':s.includes('Special')?'b-special':s.includes('Sub')?'b-sub':s.includes('Doubtful')?'b-doubtful':'b-macet';
+  return '<span class="badge '+cls+'">'+s+'</span>';
+}
+
+function rootBadge(r){
+  var cls = r.includes('High')?'b-hi':r.includes('FOMO')?'b-fomo':r.includes('Income')?'b-income':r.includes('Gali')?'b-gali':'b-spec';
+  var short = r.replace('High-Interest-Rate-Compounding','High-Interest').replace('Compulsive-FOMO-Spending','FOMO-Spending').replace('Income-Shock-Underemployment','Income-Shock').replace('Gali-Lubang-Debt-Spiral','Debt-Spiral');
+  return '<span class="badge '+cls+'">'+short+'</span>';
+}
+
+function appBucket(n){ return n==1?'1 App':n<=3?'2-3 Apps':n<=5?'4-5 Apps':'6+ Apps'; }
+
+function riskColor(fdi){ return fdi>=7?'#dc2626':fdi>=5?'#ea580c':fdi>=3?'#eab308':'#16a34a'; }
+
+function applyFilters(){
+  var name   = document.getElementById('searchName').value.toLowerCase();
+  var status = document.getElementById('filterStatus').value;
+  var prov   = document.getElementById('filterProvince').value;
+  var job    = document.getElementById('filterJob').value;
+  var apps   = document.getElementById('filterApps').value;
+
+  filtered = allData.filter(function(d){
+    if(name && !d.nama_lengkap.toLowerCase().includes(name) && !d.member_id.toLowerCase().includes(name)) return false;
+    if(status && d.status_kredit !== status) return false;
+    if(prov && d.provinsi !== prov) return false;
+    if(job && d.pekerjaan !== job) return false;
+    if(apps){
+      var n = d.jumlah_app_aktif;
+      if(apps==='1' && n!==1) return false;
+      if(apps==='2-3' && (n<2||n>3)) return false;
+      if(apps==='4-5' && (n<4||n>5)) return false;
+      if(apps==='6+' && n<6) return false;
+    }
+    return true;
+  });
+  currentPage = 1;
+  renderStats();
+  renderTable();
+  renderPagination();
+}
+
+function resetFilters(){
+  document.getElementById('searchName').value = '';
+  document.getElementById('filterStatus').value = '';
+  document.getElementById('filterProvince').value = '';
+  document.getElementById('filterJob').value = '';
+  document.getElementById('filterApps').value = '';
+  applyFilters();
+}
+
+// sort
+document.querySelectorAll('thead th[data-key]').forEach(function(th){
+  th.addEventListener('click', function(){
+    var key = th.getAttribute('data-key');
+    if(sortKey===key) sortDir*=-1; else { sortKey=key; sortDir=1; }
+    document.querySelectorAll('thead th').forEach(function(t){ t.classList.remove('sorted'); });
+    th.classList.add('sorted');
+    filtered.sort(function(a,b){
+      var av=a[key], bv=b[key];
+      return typeof av==='string' ? av.localeCompare(bv)*sortDir : (av-bv)*sortDir;
+    });
+    renderTable();
+  });
+});
+
+function renderStats(){
+  var total   = filtered.length;
+  var defaults= filtered.filter(function(d){ return d.status_kredit==='Default-Macet-TWP90'||d.status_kredit==='Doubtful-DPD61-90'; }).length;
+  var current = filtered.filter(function(d){ return d.status_kredit==='Current-Performing'; }).length;
+  var avgApps = total>0 ? (filtered.reduce(function(s,d){return s+d.jumlah_app_aktif;},0)/total).toFixed(1) : '0';
+  var avgFdi  = total>0 ? (filtered.reduce(function(s,d){return s+d.financial_distress_index;},0)/total).toFixed(2) : '0';
+  var dr      = total>0 ? (defaults/total*100).toFixed(1) : 0;
+
+  document.getElementById('statsRow').innerHTML =
+    '<div class="stat-pill blue"><div class="n">'+total+'</div><div class="l">Member Ditemukan</div></div>'+
+    '<div class="stat-pill red"><div class="n">'+dr+'%</div><div class="l">Default Rate</div></div>'+
+    '<div class="stat-pill green"><div class="n">'+current+'</div><div class="l">Current Performing</div></div>'+
+    '<div class="stat-pill orange"><div class="n">'+avgApps+'</div><div class="l">Rata-rata Apps</div></div>'+
+    '<div class="stat-pill"><div class="n">'+avgFdi+'</div><div class="l">Avg Distress Index</div></div>';
+
+  document.getElementById('tableTitle').textContent = total + ' Member Ditemukan';
+}
+
+function renderTable(){
+  var start = (currentPage-1)*pageSize;
+  var page  = filtered.slice(start, start+pageSize);
+  var tbody = document.getElementById('tableBody');
+  var noRes = document.getElementById('noResults');
+
+  if(page.length===0){
+    tbody.innerHTML='';
+    noRes.style.display='block';
+    document.getElementById('tableCount').textContent='';
+    return;
+  }
+  noRes.style.display='none';
+
+  tbody.innerHTML = page.map(function(d, i){
+    var idx = start + i;
+    var appColor = d.jumlah_app_aktif>=6?'#dc2626':d.jumlah_app_aktif>=4?'#ea580c':'#1f2328';
+    var fdiColor = riskColor(d.financial_distress_index);
+    var dpd = d.days_past_due;
+    var dpdColor = dpd>90?'#dc2626':dpd>30?'#ea580c':dpd>0?'#eab308':'#16a34a';
+    return '<tr data-idx="'+idx+'">'+
+      '<td><code>'+d.member_id+'</code></td>'+
+      '<td><strong>'+d.nama_lengkap+'</strong></td>'+
+      '<td>'+d.usia+'</td>'+
+      '<td>'+d.gender+'</td>'+
+      '<td>'+d.provinsi+'</td>'+
+      '<td>'+d.pekerjaan+'</td>'+
+      '<td>'+formatIdr(d.pendapatan_bulanan_idr)+'</td>'+
+      '<td style="font-weight:700;color:'+appColor+'">'+d.jumlah_app_aktif+'</td>'+
+      '<td style="font-weight:700;color:'+dpdColor+'">'+dpd+'</td>'+
+      '<td style="font-weight:700;color:'+fdiColor+'">'+d.financial_distress_index+'</td>'+
+      '<td>'+statusBadge(d.status_kredit)+'</td>'+
+      '<td>'+rootBadge(d.akar_masalah)+'</td>'+
+      '</tr>';
+  }).join('');
+
+  var total = Math.max(1, Math.ceil(filtered.length/pageSize));
+  document.getElementById('tableCount').textContent = 'Hal '+currentPage+' / '+total;
+}
+
+function renderPagination(){
+  var total = Math.ceil(filtered.length/pageSize);
+  var pg = document.getElementById('pagination');
+  if(total<=1){ pg.innerHTML=''; return; }
+  var html = '<span class="pinfo">Hal.</span>';
+  html += '<button id="pgFirst">&#171;</button>';
+  html += '<button id="pgPrev">&#8249;</button>';
+  var start = Math.max(1, currentPage-2);
+  var end   = Math.min(total, start+4);
+  for(var p=start; p<=end; p++){
+    html += '<button class="pgNum'+(p===currentPage?' active':'')+'" data-p="'+p+'">'+p+'</button>';
+  }
+  html += '<button id="pgNext">&#8250;</button>';
+  html += '<button id="pgLast">&#187;</button>';
+  pg.innerHTML = html;
+
+  document.getElementById('pgFirst').disabled = currentPage===1;
+  document.getElementById('pgPrev').disabled  = currentPage===1;
+  document.getElementById('pgNext').disabled  = currentPage===total;
+  document.getElementById('pgLast').disabled  = currentPage===total;
+
+  document.getElementById('pgFirst').addEventListener('click', function(){ goPage(1); });
+  document.getElementById('pgPrev').addEventListener('click',  function(){ goPage(currentPage-1); });
+  document.getElementById('pgNext').addEventListener('click',  function(){ goPage(currentPage+1); });
+  document.getElementById('pgLast').addEventListener('click',  function(){ goPage(total); });
+  document.querySelectorAll('.pgNum').forEach(function(btn){
+    btn.addEventListener('click', function(){ goPage(parseInt(this.getAttribute('data-p'))); });
+  });
+}
+
+function goPage(p){
+  var total = Math.ceil(filtered.length/pageSize);
+  if(p<1||p>total) return;
+  currentPage = p;
+  renderTable();
+  renderPagination();
+  renderStats();
+}
+
+// row click -> detail modal
+document.getElementById('tableBody').addEventListener('click', function(e){
+  var tr = e.target.closest('tr');
+  if(!tr) return;
+  var idx = parseInt(tr.getAttribute('data-idx'));
+  showDetail(idx);
+});
+
+function showDetail(idx){
+  var d = filtered[idx];
+  if(!d) return;
+  var initials = d.nama_lengkap.split(' ').map(function(w){return w[0];}).join('').slice(0,2).toUpperCase();
+  var fdiPct   = Math.min(d.financial_distress_index/10*100, 100);
+  var rc       = riskColor(d.financial_distress_index);
+
+  document.getElementById('modalTitle').textContent = d.member_id + ' — ' + d.nama_lengkap;
+  document.getElementById('modalBody').innerHTML =
+    '<div class="profile-top">'+
+      '<div class="avatar">'+initials+'</div>'+
+      '<div>'+
+        '<div class="profile-name">'+d.nama_lengkap+'</div>'+
+        '<div class="profile-sub">'+d.pekerjaan+' &nbsp;&middot;&nbsp; '+d.provinsi+'</div>'+
+        statusBadge(d.status_kredit)+'&nbsp;'+rootBadge(d.akar_masalah)+
+      '</div>'+
+    '</div>'+
+    '<div class="detail-grid">'+
+      '<div class="di"><div class="dk">Usia / Gender</div><div class="dv">'+d.usia+' tahun / '+d.gender+'</div></div>'+
+      '<div class="di"><div class="dk">Pendidikan</div><div class="dv">'+d.pendidikan+'</div></div>'+
+      '<div class="di"><div class="dk">Pendapatan Bulanan</div><div class="dv">'+formatIdr(d.pendapatan_bulanan_idr)+'</div></div>'+
+      '<div class="di"><div class="dk">UMR Daerah</div><div class="dv">'+formatIdr(d.umr_daerah_idr)+'</div></div>'+
+      '<div class="di"><div class="dk">Total Pinjaman</div><div class="dv">'+formatIdr(d.total_pinjaman_idr)+'</div></div>'+
+      '<div class="di"><div class="dk">Limit Kredit</div><div class="dv">'+formatIdr(d.limit_kredit_idr)+'</div></div>'+
+      '<div class="di"><div class="dk">Tenor / Bunga Harian</div><div class="dv">'+d.tenor_bulan+' bln / '+d.bunga_harian_pct+'%/hari</div></div>'+
+      '<div class="di"><div class="dk">Tujuan Pinjaman</div><div class="dv">'+d.tujuan_pinjaman+'</div></div>'+
+      '<div class="di"><div class="dk">Debt-to-Income (DTI)</div><div class="dv">'+d.debt_to_income_ratio+'x</div></div>'+
+      '<div class="di"><div class="dk">Utilisasi Limit</div><div class="dv">'+(d.utilisasi_limit*100).toFixed(1)+'%</div></div>'+
+      '<div class="di"><div class="dk">Days Past Due</div><div class="dv" style="color:'+(d.days_past_due>90?'#dc2626':d.days_past_due>30?'#ea580c':'#16a34a')+'">'+d.days_past_due+' hari</div></div>'+
+      '<div class="di"><div class="dk">Jumlah App Aktif</div><div class="dv" style="color:'+(d.jumlah_app_aktif>=6?'#dc2626':d.jumlah_app_aktif>=4?'#ea580c':'#1f2328')+'">'+d.jumlah_app_aktif+' app ('+appBucket(d.jumlah_app_aktif)+')</div></div>'+
+      '<div class="di"><div class="dk">Income / UMR Ratio</div><div class="dv">'+d.income_to_umr_ratio+'x</div></div>'+
+      '<div class="di"><div class="dk">Confidence Score</div><div class="dv">'+(d.confidence_score*100).toFixed(1)+'%</div></div>'+
+    '</div>'+
+    '<div class="risk-bar">'+
+      '<div class="rb-label"><span style="font-weight:600">Financial Distress Index</span><span style="color:'+rc+';font-weight:700">'+d.financial_distress_index+' / 10</span></div>'+
+      '<div class="rb-track"><div class="rb-fill" style="width:'+fdiPct+'%;background:'+rc+'"></div></div>'+
+    '</div>';
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+document.getElementById('modalClose').addEventListener('click', function(){
+  document.getElementById('modalOverlay').classList.remove('open');
+});
+document.getElementById('modalOverlay').addEventListener('click', function(e){
+  if(e.target === this) this.classList.remove('open');
+});
+
+// live search & filter events
+document.getElementById('searchName').addEventListener('input', applyFilters);
+document.getElementById('filterStatus').addEventListener('change', applyFilters);
+document.getElementById('filterProvince').addEventListener('change', applyFilters);
+document.getElementById('filterJob').addEventListener('change', applyFilters);
+document.getElementById('filterApps').addEventListener('change', applyFilters);
+document.getElementById('btnReset').addEventListener('click', resetFilters);
+
+// Init
+applyFilters();
+</script>
+</body>
+</html>

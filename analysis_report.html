@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Analysis Report — P2P Credit Risk</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:#f0f2f5;color:#1f2328;font-size:14px;line-height:1.7}
+.navbar{background:#0f1629;color:#fff;padding:0 32px;display:flex;align-items:center;gap:0;border-bottom:1px solid #2d3550}
+.navbar .brand{font-size:13px;font-weight:700;color:#fff;padding:12px 0;margin-right:24px;white-space:nowrap;letter-spacing:0.3px}
+.navbar .brand span{color:#3b82d4}
+.nav-links{display:flex;gap:0}
+.nav-links a{display:block;padding:12px 16px;color:#9ba3c0;text-decoration:none;font-size:12px;font-weight:500;border-bottom:3px solid transparent;transition:color 0.15s,border-color 0.15s;white-space:nowrap}
+.nav-links a:hover{color:#fff;background:rgba(255,255,255,0.05)}
+.nav-links a.active{color:#fff;border-bottom-color:#3b82d4;font-weight:600}
+.header{background:#1a1f36;color:#fff;padding:20px 32px}
+.header h1{font-size:20px;font-weight:700}
+.header p{color:#9ba3c0;font-size:12px;margin-top:3px}
+.main{padding:28px 32px;max-width:900px;margin:0 auto}
+.section{margin-bottom:32px}
+.section-label{font-size:10px;font-weight:700;color:#3b82d4;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}
+.section h2{font-size:17px;font-weight:700;color:#1f2328;margin-bottom:12px;line-height:1.4}
+.section p{font-size:13.5px;color:#374151;margin-bottom:12px;line-height:1.75}
+.divider{border:none;border-top:1px solid #e5e7eb;margin:28px 0}
+.card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:20px 24px;margin-bottom:16px}
+.card h3{font-size:14px;font-weight:700;margin-bottom:8px;color:#1f2328}
+.card p{font-size:13px;color:#374151;margin-bottom:0;line-height:1.75}
+.layer-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.layer-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;padding:18px 20px}
+.layer-card .ln{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.layer-card .lt{font-size:13px;font-weight:700;color:#1f2328;margin-bottom:8px}
+.layer-card .ld{font-size:12px;color:#57606a;line-height:1.65}
+.layer-card.l1 .ln{color:#3b82d4}
+.layer-card.l1{border-top:3px solid #3b82d4}
+.layer-card.l2 .ln{color:#7c5cd8}
+.layer-card.l2{border-top:3px solid #7c5cd8}
+.layer-card.l3 .ln{color:#ea580c}
+.layer-card.l3{border-top:3px solid #ea580c}
+.layer-card.l4 .ln{color:#16a34a}
+.layer-card.l4{border-top:3px solid #16a34a}
+.iter-table{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+.iter-table th{background:#f7f8fa;padding:9px 14px;text-align:left;font-weight:600;color:#57606a;border-bottom:2px solid #e5e7eb}
+.iter-table td{padding:9px 14px;border-bottom:1px solid #f0f2f5;vertical-align:top;line-height:1.6}
+.iter-table tr:last-child td{border-bottom:none}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}
+.stat-box{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;text-align:center}
+.stat-box .sv{font-size:24px;font-weight:700;color:#1f2328}
+.stat-box .sk{font-size:11px;color:#57606a;text-transform:uppercase;letter-spacing:0.4px;margin-top:3px}
+.stat-box.red .sv{color:#dc2626}
+.stat-box.green .sv{color:#16a34a}
+.stat-box.blue .sv{color:#2563eb}
+.stat-box.orange .sv{color:#ea580c}
+.rec-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.rec-table th{background:#f7f8fa;padding:9px 14px;text-align:left;font-weight:600;color:#57606a;border-bottom:2px solid #e5e7eb}
+.rec-table td{padding:9px 14px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+.rec-table tr:last-child td{border-bottom:none}
+.badge{display:inline-block;padding:2px 9px;border-radius:12px;font-size:11px;font-weight:600}
+.badge.red{background:#fee2e2;color:#dc2626}
+.badge.orange{background:#ffedd5;color:#ea580c}
+.badge.yellow{background:#fef9c3;color:#ca8a04}
+.badge.green{background:#dcfce7;color:#16a34a}
+.badge.blue{background:#dbeafe;color:#2563eb}
+.insight{background:#f0f7ff;border-left:3px solid #3b82d4;border-radius:4px;padding:12px 16px;margin:12px 0;font-size:13px;color:#1e3a5f}
+.disclaimer{background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 32px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:#92400e}
+.disclaimer strong{color:#78350f}
+.disclaimer .disc-icon{font-size:14px;flex-shrink:0}
+.footer{background:#0f1629;color:#9ba3c0;padding:28px 32px;margin-top:8px}
+.footer-inner{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.footer-brand{font-size:14px;font-weight:700;color:#fff}
+.footer-brand span{color:#3b82d4}
+.footer-brand p{font-size:11.5px;color:#9ba3c0;font-weight:400;margin-top:4px;line-height:1.5}
+.footer-links{display:flex;gap:24px;flex-wrap:wrap}
+.footer-links a{color:#9ba3c0;text-decoration:none;font-size:12px}
+.footer-links a:hover{color:#fff}
+.footer-bottom{border-top:1px solid #2d3550;padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:11px}
+.footer-bottom a{color:#3b82d4;text-decoration:none}
+.footer-bottom a:hover{text-decoration:underline}
+.mit-badge{display:inline-flex;align-items:center;gap:5px;background:#1e3a5f;border:1px solid #2d5a9e;color:#93c5fd;border-radius:4px;padding:2px 8px;font-size:10.5px;font-weight:600}
+@media(max-width:768px){.layer-grid{grid-template-columns:1fr}.stat-grid{grid-template-columns:1fr 1fr}.main{padding:16px 20px}}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">P2P <span>CreditRisk</span></div>
+  <div class="nav-links">
+    <a href="dashboard.html">📊 Risk Dashboard</a>
+    <a href="member_lookup.html">🔍 Member Lookup</a>
+    <a href="analysis_report.html" class="active">📋 Analysis Report</a>
+  </div>
+</nav>
+<div class="disclaimer">
+  <span class="disc-icon">⚠️</span>
+  <span><strong>Data Fiktif &amp; Tidak Nyata.</strong> Seluruh data debitur dalam laporan ini adalah data sintetis yang dibuat untuk keperluan edukasi dan demonstrasi analisis risiko kredit. Tidak ada hubungan dengan individu, lembaga, atau transaksi nyata manapun.</span>
+</div>
+
+<div class="header">
+  <h1>📋 Analysis Report — Indonesia Fintech P2P & PayLater 2026</h1>
+  <p>Laporan lengkap: Problem Statement, Arsitektur Prompt, Iterasi, hingga Temuan & Rekomendasi</p>
+</div>
+
+<div class="main">
+
+  <!-- 1. Dataset Overview -->
+  <div class="section">
+    <div class="section-label">01 — Dataset</div>
+    <h2>Ringkasan Dataset</h2>
+    <p>Dataset <strong>indonesia_fintech_p2p_paylater_enriched_2026.csv</strong> berisi data 10.000 debitur pinjaman online (pinjol) dan PayLater di Indonesia tahun 2026. Terdapat 26 kolom yang mencakup informasi demografis, data pinjaman, rasio-rasio keuangan, serta narasi analisis psikologi keuangan per debitur. Setiap baris mewakili satu debitur lengkap dengan label status kreditnya berdasarkan standar kolektibilitas OJK.</p>
+    <div class="stat-grid">
+      <div class="stat-box blue"><div class="sv">10,000</div><div class="sk">Total Debitur</div></div>
+      <div class="stat-box"><div class="sv">26</div><div class="sk">Jumlah Kolom</div></div>
+      <div class="stat-box green"><div class="sv">0</div><div class="sk">Missing Values</div></div>
+      <div class="stat-box red"><div class="sv">33.9%</div><div class="sk">Default Rate</div></div>
+      <div class="stat-box orange"><div class="sv">4.17</div><div class="sk">Avg Apps Aktif</div></div>
+      <div class="stat-box blue"><div class="sv">0.9916</div><div class="sk">Model AUC</div></div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- 2. Problem Statement -->
+  <div class="section">
+    <div class="section-label">02 — Problem Statement</div>
+    <h2>Rumusan Masalah</h2>
+    <p>Tingginya penetrasi aplikasi pinjol dan PayLater di Indonesia membawa risiko gagal bayar yang semakin kompleks, terutama di kalangan debitur muda dengan pendapatan tidak stabil. Banyak debitur tercatat aktif menggunakan lebih dari satu aplikasi pinjaman secara bersamaan, dengan beban cicilan yang jauh melampaui kapasitas pendapatan mereka — ditunjukkan oleh nilai Debt Service Ratio (DSR) yang bisa mencapai di atas 200%.</p>
+    <div class="insight">❓ <strong>Pertanyaan Utama:</strong> Bagaimana membangun model prediktif yang mampu mengklasifikasikan status kredit debitur ke dalam 5 tingkat kolektibilitas OJK secara akurat, sekaligus mengidentifikasi akar penyebab utama gagal bayar — apakah dari bunga berbunga, perilaku konsumsi impulsif, guncangan pendapatan, atau spiral utang multi-platform?</div>
+    <p><strong>Target User:</strong> Tim risiko kredit & analis data platform fintech P2P lending, regulator OJK, dan data scientist yang ingin membangun model credit risk scoring berbasis data industri keuangan digital Indonesia.</p>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- 3. Arsitektur Prompt -->
+  <div class="section">
+    <div class="section-label">03 — Arsitektur Prompt</div>
+    <h2>Prompt Layering (4 Lapis)</h2>
+    <p>Prompt tidak ditulis sebagai satu instruksi tunggal, melainkan disusun berlapis-lapis agar model AI dapat memahami konteks, peran, dan tugas secara presisi. Setiap lapisan memiliki fungsi berbeda.</p>
+    <div class="layer-grid">
+      <div class="layer-card l1">
+        <div class="ln">Layer 1</div>
+        <div class="lt">Role &amp; Context</div>
+        <div class="ld">Menetapkan peran AI sebagai Senior Risk Data Analyst di perusahaan fintech P2P lending yang memimpin proyek evaluasi kebijakan underwriting. Fokus pada analisis data tabular historis dengan output berorientasi keputusan bisnis Credit Risk.</div>
+      </div>
+      <div class="layer-card l2">
+        <div class="ln">Layer 2</div>
+        <div class="lt">Task &amp; Requirements</div>
+        <div class="ld">Mendefinisikan tugas spesifik: susun kerangka kerja untuk menjawab apakah jumlah aplikasi aktif berkorelasi dengan default. Mencakup 4 komponen: Data Preparation, EDA, Statistical Testing/Modeling, dan Business Insights.</div>
+      </div>
+      <div class="layer-card l3">
+        <div class="ln">Layer 3</div>
+        <div class="lt">Constraints &amp; Quality</div>
+        <div class="ld">Batasan kualitas output: gunakan bahasa profesional yang mudah dipahami non-teknis, fokus pada actionable insights bukan teori statistik, dan sebutkan asumsi terkait kualitas data secara eksplisit.</div>
+      </div>
+      <div class="layer-card l4">
+        <div class="ln">Layer 4</div>
+        <div class="lt">Output Format</div>
+        <div class="ld">Format output wajib: Executive Summary (2-3 kalimat), Metodologi &amp; Variabel, Hasil Analisis dengan ekspektasi grafik, dan Kesimpulan &amp; Rekomendasi Kebijakan berupa cut-off, penyesuaian bunga, atau manual review.</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- 4. Iterasi Prompt -->
+  <div class="section">
+    <div class="section-label">04 — Iterasi Prompt</div>
+    <h2>Penyempurnaan Prompt (4 Iterasi)</h2>
+    <p>Iterasi prompt adalah proses penyempurnaan bertahap berdasarkan hasil output yang diterima. Setiap iterasi memperbaiki kelemahan output sebelumnya.</p>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="iter-table">
+        <thead>
+          <tr><th>Iterasi</th><th>Masalah Output Sebelumnya</th><th>Perubahan Prompt</th><th>Dampak</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Iterasi 1</strong></td>
+            <td>Output terlalu umum, tidak menyebut rasio keuangan secara eksplisit</td>
+            <td>Tambah instruksi eksplisit untuk menyebut nilai DTI, DSR, dan utilisasi limit</td>
+            <td>Narasi menjadi lebih teknis dan kaya data</td>
+          </tr>
+          <tr>
+            <td><strong>Iterasi 2</strong></td>
+            <td>Narasi tidak mencerminkan konteks industri keuangan Indonesia</td>
+            <td>Tambah konteks peran: <em>"kamu adalah analis kredit di platform fintech Indonesia"</em></td>
+            <td>Narasi lebih relevan industri dan bernuansa lokal</td>
+          </tr>
+          <tr>
+            <td><strong>Iterasi 3</strong></td>
+            <td>Root cause tidak konsisten penamaannya antar debitur</td>
+            <td>Tambah constraint: root cause dipilih dari daftar tetap 5 kategori</td>
+            <td>Kolom <code>primary_default_root_cause</code> seragam, siap sebagai label klasifikasi</td>
+          </tr>
+          <tr>
+            <td><strong>Iterasi 4</strong></td>
+            <td>Tidak ada ukuran keyakinan/confidence model</td>
+            <td>Tambah format output: confidence score 0–1 wajib disertakan</td>
+            <td>Kolom <code>confidence_score</code> konsisten di setiap baris, dataset siap ML</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- 5. Temuan Analisis -->
+  <div class="section">
+    <div class="section-label">05 — Temuan Analisis</div>
+    <h2>Hasil & Temuan Utama</h2>
+    <p>Analisis komprehensif terhadap 10.000 debitur menggunakan Chi-Square Test, Logistic Regression, dan XGBoost menghasilkan temuan berikut:</p>
+
+    <div class="card">
+      <h3>📊 EDA — Default Rate per Bucket Jumlah Aplikasi</h3>
+      <p>Debitur dengan <strong>1 aplikasi aktif</strong> memiliki default rate <strong>8.54%</strong>, naik menjadi <strong>14.93%</strong> pada 2–3 apps, <strong>31.62%</strong> pada 4–5 apps, dan mencapai <strong>76.31%</strong> pada 6+ apps. Pola kenaikan bersifat <strong>eksponensial</strong> — bukan linier.</p>
+    </div>
+
+    <div class="card">
+      <h3>📐 Statistical Testing</h3>
+      <p>Chi-Square Test menghasilkan χ² = <strong>2,801.34</strong> dengan p-value ≈ <strong>0.00</strong> (sangat signifikan). Point-Biserial Correlation antara jumlah aplikasi aktif dan status default sebesar <strong>r = 0.552</strong>, mengkonfirmasi hubungan positif yang kuat dan signifikan secara statistik.</p>
+    </div>
+
+    <div class="card">
+      <h3>🤖 Modeling — Logistic Regression &amp; XGBoost</h3>
+      <p>Model Logistic Regression mencapai <strong>ROC-AUC 0.9916</strong> dengan akurasi <strong>95%</strong>. Odds Ratio untuk <code>num_active_lending_apps</code> sebesar <strong>12.53×</strong> — artinya setiap penambahan 1 aplikasi aktif melipatgandakan peluang default sebesar 12.53 kali. XGBoost menunjukkan <code>financial_distress_index</code> (40.7%) dan <code>debt_service_ratio</code> (25.8%) sebagai fitur terpenting, dengan <code>num_active_lending_apps</code> sebagai amplifier ke-4 (4.85%).</p>
+    </div>
+
+    <div class="insight">✅ <strong>Kesimpulan:</strong> Hipotesis terbukti. Jumlah aplikasi pinjaman aktif adalah <em>amplifier risiko</em> yang kuat — efeknya paling destruktif ketika dikombinasikan dengan DSR tinggi dan financial distress index tinggi.</div>
+  </div>
+
+  <hr class="divider"/>
+
+  <!-- 6. Rekomendasi -->
+  <div class="section">
+    <div class="section-label">06 — Rekomendasi</div>
+    <h2>Rekomendasi Kebijakan Kredit</h2>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="rec-table">
+        <thead>
+          <tr><th>Level</th><th>Bucket</th><th>Default Rate</th><th>Kebijakan</th><th>Tindakan</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><span class="badge red">🔴 Hard Rule</span></td><td><strong>≥ 6 Apps</strong></td><td style="color:#dc2626;font-weight:700">76.31%</td><td>Penolakan Otomatis</td><td>Tolak tanpa pengecualian</td></tr>
+          <tr><td><span class="badge orange">🟠 Enhanced DD</span></td><td><strong>4–5 Apps</strong></td><td style="color:#ea580c;font-weight:700">31.62%</td><td>Manual Review Wajib</td><td>Limit kredit diturunkan 50%</td></tr>
+          <tr><td><span class="badge yellow">🟡 Pricing</span></td><td><strong>2–3 Apps</strong></td><td style="color:#ca8a04;font-weight:700">14.93%</td><td>Risk-Based Pricing</td><td>+0.05–0.10%/hari risk premium</td></tr>
+          <tr><td><span class="badge green">🟢 Standard</span></td><td><strong>1 App</strong></td><td style="color:#16a34a;font-weight:700">8.54%</td><td>Proses Normal</td><td>Underwriting standar</td></tr>
+          <tr><td><span class="badge blue">🔵 Monitoring</span></td><td><strong>Semua</strong></td><td>—</td><td>Early Warning</td><td>Alert SLIK OJK jika buka pinjaman baru</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        P2P <span>CreditRisk</span>
+        <p>Platform analisis risiko kredit fintech P2P &amp; PayLater Indonesia.<br/>Data sintetis untuk keperluan riset &amp; edukasi.</p>
+      </div>
+      <div class="footer-links">
+        <a href="dashboard.html">📊 Risk Dashboard</a>
+        <a href="member_lookup.html">🔍 Member Lookup</a>
+        <a href="analysis_report.html">📋 Analysis Report</a>
+        <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">⭐ GitHub</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>
+        <span class="mit-badge">📄 MIT License</span>
+        &nbsp; Open Source &nbsp;·&nbsp;
+        Dikembangkan oleh <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">IBM Bob</a>
+        &nbsp;·&nbsp; <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">github.com/ibm/p2p-credit-risk</a>
+      </div>
+      <div style="color:#57606a">Indonesia Fintech P2P Credit Risk Analysis 2026</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

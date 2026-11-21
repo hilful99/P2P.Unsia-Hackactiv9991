@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>P2P Credit Risk Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,"Segoe UI",system-ui,sans-serif;background:#f0f2f5;color:#1f2328;font-size:14px;line-height:1.6}
+  .navbar{background:#0f1629;color:#fff;padding:0 32px;display:flex;align-items:center;gap:0;border-bottom:1px solid #2d3550}
+  .navbar .brand{font-size:13px;font-weight:700;color:#fff;padding:12px 0;margin-right:24px;white-space:nowrap;letter-spacing:0.3px}
+  .navbar .brand span{color:#3b82d4}
+  .nav-links{display:flex;gap:0}
+  .nav-links a{display:block;padding:12px 16px;color:#9ba3c0;text-decoration:none;font-size:12px;font-weight:500;border-bottom:3px solid transparent;transition:color 0.15s,border-color 0.15s;white-space:nowrap}
+  .nav-links a:hover{color:#fff;background:rgba(255,255,255,0.05)}
+  .nav-links a.active{color:#fff;border-bottom-color:#3b82d4;font-weight:600}
+  .header{background:#1a1f36;color:#fff;padding:20px 32px}
+  .header h1{font-size:22px;font-weight:700}
+  .header p{color:#9ba3c0;font-size:13px;margin-top:4px}
+  .kpi-row{display:flex;gap:16px;padding:20px 32px;flex-wrap:wrap}
+  .kpi{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:16px 20px;flex:1;min-width:150px}
+  .kpi .label{font-size:11px;color:#57606a;text-transform:uppercase;letter-spacing:0.5px;font-weight:600}
+  .kpi .value{font-size:26px;font-weight:700;margin-top:4px}
+  .kpi .sub{font-size:12px;color:#57606a;margin-top:2px}
+  .kpi.red .value{color:#dc2626}
+  .kpi.green .value{color:#16a34a}
+  .kpi.blue .value{color:#2563eb}
+  .kpi.orange .value{color:#ea580c}
+  .section{padding:0 32px 24px}
+  .section-title{font-size:12px;font-weight:700;color:#57606a;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:14px;padding-top:16px;border-top:1px solid #e5e7eb}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .card{background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:20px}
+  .card h3{font-size:13px;font-weight:600;margin-bottom:4px}
+  .card p{font-size:12px;color:#57606a;margin-bottom:14px}
+  .chart{width:100%;height:280px}
+  .chart-tall{width:100%;height:300px}
+  .insight{background:#f7f8fa;border-left:3px solid #3b82d4;border-radius:4px;padding:10px 14px;margin-top:12px;font-size:12px;color:#374151}
+  .badge{display:inline-block;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:600}
+  .badge.red{background:#fee2e2;color:#dc2626}
+  .badge.orange{background:#ffedd5;color:#ea580c}
+  .badge.yellow{background:#fef9c3;color:#ca8a04}
+  .badge.green{background:#dcfce7;color:#16a34a}
+  .badge.blue{background:#dbeafe;color:#2563eb}
+  .rec-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+  .rec-table th{background:#f7f8fa;padding:8px 12px;text-align:left;font-weight:600;color:#57606a;border-bottom:2px solid #e5e7eb}
+  .rec-table td{padding:8px 12px;border-bottom:1px solid #f0f2f5;vertical-align:middle}
+  .stat-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f0f2f5;font-size:12px}
+  .stat-row:last-child{border-bottom:none}
+  .stat-row .sk{color:#57606a}
+  .stat-row .sv{font-weight:600}
+  .disclaimer{background:#fffbeb;border-bottom:1px solid #fde68a;padding:8px 32px;display:flex;align-items:center;gap:10px;font-size:11.5px;color:#92400e}
+  .disclaimer strong{color:#78350f}
+  .disclaimer .disc-icon{font-size:14px;flex-shrink:0}
+  .footer{background:#0f1629;color:#9ba3c0;padding:28px 32px;margin-top:8px}
+  .footer-inner{max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+  .footer-top{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+  .footer-brand{font-size:14px;font-weight:700;color:#fff}
+  .footer-brand span{color:#3b82d4}
+  .footer-brand p{font-size:11.5px;color:#9ba3c0;font-weight:400;margin-top:4px;line-height:1.5}
+  .footer-links{display:flex;gap:24px;flex-wrap:wrap}
+  .footer-links a{color:#9ba3c0;text-decoration:none;font-size:12px}
+  .footer-links a:hover{color:#fff}
+  .footer-bottom{border-top:1px solid #2d3550;padding-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;font-size:11px}
+  .footer-bottom a{color:#3b82d4;text-decoration:none}
+  .footer-bottom a:hover{text-decoration:underline}
+  .mit-badge{display:inline-flex;align-items:center;gap:5px;background:#1e3a5f;border:1px solid #2d5a9e;color:#93c5fd;border-radius:4px;padding:2px 8px;font-size:10.5px;font-weight:600}
+  @media(max-width:900px){.grid-2,.grid-3{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="brand">P2P <span>CreditRisk</span></div>
+  <div class="nav-links">
+    <a href="dashboard.html" class="active">📊 Risk Dashboard</a>
+    <a href="member_lookup.html">🔍 Member Lookup</a>
+    <a href="analysis_report.html">📋 Analysis Report</a>
+  </div>
+</nav>
+<div class="disclaimer">
+  <span class="disc-icon">⚠️</span>
+  <span><strong>Data Fiktif &amp; Tidak Nyata.</strong> Seluruh data debitur dalam aplikasi ini adalah data sintetis yang dibuat untuk keperluan edukasi dan demonstrasi analisis risiko kredit. Tidak ada hubungan dengan individu, lembaga, atau transaksi nyata manapun.</span>
+</div>
+<div class="header">
+  <h1>📊 Credit Risk Dashboard — Indonesia Fintech P2P & PayLater 2026</h1>
+  <p>Analisis Credit Hungry Behavior sebagai Prediktor Default &nbsp;|&nbsp; 10.000 Debitur &nbsp;|&nbsp; ROC-AUC: 0.9916</p>
+</div>
+
+<div class="kpi-row">
+  <div class="kpi blue"><div class="label">Total Debitur</div><div class="value">10,000</div><div class="sub">0 missing values</div></div>
+  <div class="kpi red"><div class="label">Default Rate</div><div class="value">33.9%</div><div class="sub">3,394 debitur</div></div>
+  <div class="kpi orange"><div class="label">Avg Apps Aktif</div><div class="value">4.17</div><div class="sub">Max: 12 apps</div></div>
+  <div class="kpi green"><div class="label">Model AUC</div><div class="value">0.9916</div><div class="sub">Logistic Regression</div></div>
+  <div class="kpi red"><div class="label">Default 6+ Apps</div><div class="value">76.31%</div><div class="sub">vs 8.54% (1 app)</div></div>
+  <div class="kpi orange"><div class="label">Odds Ratio</div><div class="value">12.5×</div><div class="sub">per +1 app aktif</div></div>
+</div>
+
+<!-- EDA -->
+<div class="section">
+  <div class="section-title">EDA — Default Rate & Distribusi Status Kredit per Bucket Aplikasi</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Default Rate per Bucket Jumlah Aplikasi Aktif</h3>
+      <p>Semakin banyak aplikasi, semakin tinggi risiko gagal bayar</p>
+      <div id="c1" class="chart"></div>
+      <div class="insight">🔴 Debitur dengan 6+ apps memiliki default rate <strong>76.31%</strong> — hampir 9× lebih tinggi dari debitur 1 app (8.54%). Pola kenaikan bersifat <strong>eksponensial</strong>.</div>
+    </div>
+    <div class="card">
+      <h3>Breakdown Status Kredit per Bucket (%)</h3>
+      <p>Proporsi 5 kategori kolektibilitas OJK tiap bucket</p>
+      <div id="c2" class="chart"></div>
+      <div class="insight">🔴 Pada bucket 6+ apps, <strong>66.79%</strong> sudah masuk Default-Macet (TWP90) dan hanya <strong>4.2%</strong> yang masih Current-Performing.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Financial Metrics -->
+<div class="section">
+  <div class="section-title">Rata-rata Metrik Finansial per Bucket</div>
+  <div class="grid-3">
+    <div class="card">
+      <h3>Debt-to-Income Ratio (DTI)</h3>
+      <p>Rasio total utang terhadap pendapatan bulanan</p>
+      <div id="c3" class="chart-tall"></div>
+    </div>
+    <div class="card">
+      <h3>Debt Service Ratio (DSR)</h3>
+      <p>Beban cicilan vs pendapatan (&gt;1.0 = defisit kas)</p>
+      <div id="c4" class="chart-tall"></div>
+    </div>
+    <div class="card">
+      <h3>Financial Distress Index (0–10)</h3>
+      <p>Indeks tekanan finansial — makin tinggi makin kritis</p>
+      <div id="c5" class="chart-tall"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Statistical & Model -->
+<div class="section">
+  <div class="section-title">Statistical Testing & Model Insights</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Korelasi Fitur terhadap Default (Pearson)</h3>
+      <p>Semakin tinggi nilai, semakin prediktif terhadap risiko default</p>
+      <div id="c6" class="chart"></div>
+      <div class="insight">✅ <code>num_active_lending_apps</code> memiliki korelasi <strong>0.552</strong> — signifikan secara statistik (p ≈ 0.00, χ² = 2,801.34).</div>
+    </div>
+    <div class="card">
+      <h3>XGBoost Feature Importance</h3>
+      <p>Kontribusi tiap fitur dalam model prediksi default</p>
+      <div id="c7" class="chart"></div>
+      <div class="insight">🔑 <code>financial_distress_index</code> (40.7%) dan <code>debt_service_ratio</code> (25.8%) mendominasi. <code>num_active_lending_apps</code> adalah <strong>amplifier</strong> ke-4 (4.85%).</div>
+    </div>
+  </div>
+</div>
+
+<!-- Odds Ratio + Stats -->
+<div class="section">
+  <div class="section-title">Odds Ratio & Ringkasan Statistik</div>
+  <div class="grid-2">
+    <div class="card">
+      <h3>Odds Ratio — Logistic Regression</h3>
+      <p>Seberapa besar tiap fitur melipatgandakan peluang default</p>
+      <div id="c8" class="chart-tall"></div>
+    </div>
+    <div class="card">
+      <h3>Ringkasan Hasil Uji Statistik & Model</h3>
+      <p>Key findings dari analisis komprehensif 10.000 debitur</p>
+      <div style="margin-top:8px">
+        <div class="stat-row"><span class="sk">Chi-Square Statistic</span><span class="sv">2,801.34</span></div>
+        <div class="stat-row"><span class="sk">p-value</span><span class="sv" style="color:#dc2626">≈ 0.00 (Sangat Signifikan)</span></div>
+        <div class="stat-row"><span class="sk">Degrees of Freedom</span><span class="sv">3</span></div>
+        <div class="stat-row"><span class="sk">Point-Biserial Correlation</span><span class="sv">0.5522</span></div>
+        <div class="stat-row"><span class="sk">Logistic Regression AUC</span><span class="sv" style="color:#16a34a">0.9916</span></div>
+        <div class="stat-row"><span class="sk">XGBoost AUC</span><span class="sv" style="color:#16a34a">0.9900</span></div>
+        <div class="stat-row"><span class="sk">Accuracy (Test Set 20%)</span><span class="sv">95%</span></div>
+        <div class="stat-row"><span class="sk">Odds Ratio (num_apps)</span><span class="sv" style="color:#dc2626">12.53× per +1 app</span></div>
+        <div class="stat-row"><span class="sk">Odds Ratio (DSR)</span><span class="sv" style="color:#dc2626">328× — faktor terkuat</span></div>
+        <div class="stat-row"><span class="sk">Total Debitur Default</span><span class="sv">3,394 (33.9%)</span></div>
+      </div>
+      <div class="insight" style="margin-top:16px">✅ Hipotesis <strong>TERBUKTI</strong>: Jumlah aplikasi pinjaman aktif berkorelasi positif dan signifikan terhadap risiko default. Debitur 6+ apps = profil risiko kritis.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Rekomendasi -->
+<div class="section">
+  <div class="section-title">Rekomendasi Kebijakan Kredit</div>
+  <div class="card">
+    <table class="rec-table">
+      <thead>
+        <tr><th>Level</th><th>Bucket Aplikasi</th><th>Default Rate</th><th>Kebijakan</th><th>Tindakan</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><span class="badge red">🔴 HARD RULE</span></td><td><strong>≥ 6 Apps</strong></td><td><strong style="color:#dc2626">76.31%</strong></td><td>Penolakan Otomatis</td><td>Tolak pengajuan tanpa pengecualian</td></tr>
+        <tr><td><span class="badge orange">🟠 ENHANCED DD</span></td><td><strong>4–5 Apps</strong></td><td><strong style="color:#ea580c">31.62%</strong></td><td>Manual Review Wajib</td><td>Limit kredit diturunkan 50%, review analis kredit</td></tr>
+        <tr><td><span class="badge yellow">🟡 PRICING</span></td><td><strong>2–3 Apps</strong></td><td><strong style="color:#ca8a04">14.93%</strong></td><td>Risk-Based Pricing</td><td>Tambahan bunga risk premium +0.05–0.10%/hari</td></tr>
+        <tr><td><span class="badge green">🟢 STANDARD</span></td><td><strong>1 App</strong></td><td><strong style="color:#16a34a">8.54%</strong></td><td>Proses Normal</td><td>Underwriting standar berlaku</td></tr>
+        <tr><td><span class="badge blue">🔵 MONITORING</span></td><td><strong>Semua</strong></td><td>—</td><td>Early Warning System</td><td>Alert SLIK OJK jika buka pinjaman baru selama periode aktif</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="footer-inner">
+    <div class="footer-top">
+      <div class="footer-brand">
+        P2P <span>CreditRisk</span>
+        <p>Platform analisis risiko kredit fintech P2P &amp; PayLater Indonesia.<br/>Data sintetis untuk keperluan riset &amp; edukasi.</p>
+      </div>
+      <div class="footer-links">
+        <a href="dashboard.html">📊 Risk Dashboard</a>
+        <a href="member_lookup.html">🔍 Member Lookup</a>
+        <a href="analysis_report.html">📋 Analysis Report</a>
+        <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">⭐ GitHub</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <div>
+        <span class="mit-badge">📄 MIT License</span>
+        &nbsp; Open Source &nbsp;·&nbsp;
+        Dikembangkan oleh <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">IBM Bob</a>
+        &nbsp;·&nbsp; <a href="https://github.com/ibm/p2p-credit-risk" target="_blank">github.com/ibm/p2p-credit-risk</a>
+      </div>
+      <div style="color:#57606a">Indonesia Fintech P2P Credit Risk Analysis 2026</div>
+    </div>
+  </div>
+</div>
+
+<script>
+var buckets = ['1 App','2-3 Apps','4-5 Apps','6+ Apps'];
+
+// C1 — Default Rate Bar
+var c1 = echarts.init(document.getElementById('c1'));
+c1.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}%</b>'},
+  grid:{left:50,right:20,top:20,bottom:40},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:11}},
+  yAxis:{type:'value',name:'Default Rate (%)',max:100,axisLabel:{formatter:'{value}%',fontSize:10}},
+  series:[{type:'bar',barMaxWidth:60,
+    data:[
+      {value:8.54,itemStyle:{color:'#16a34a'}},
+      {value:14.93,itemStyle:{color:'#ca8a04'}},
+      {value:31.62,itemStyle:{color:'#ea580c'}},
+      {value:76.31,itemStyle:{color:'#dc2626'}}
+    ],
+    label:{show:true,position:'top',formatter:'{c}%',fontSize:12,fontWeight:'bold'}
+  }]
+});
+
+// C2 — Stacked Status
+var c2 = echarts.init(document.getElementById('c2'));
+c2.setOption({
+  tooltip:{trigger:'axis',axisPointer:{type:'shadow'}},
+  legend:{bottom:0,textStyle:{fontSize:10},itemWidth:12,itemHeight:8},
+  grid:{left:50,right:10,top:10,bottom:65},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:10}},
+  yAxis:{type:'value',max:100,axisLabel:{formatter:'{value}%',fontSize:10}},
+  series:[
+    {name:'Current',type:'bar',stack:'s',data:[67.75,53.56,26.34,4.20],itemStyle:{color:'#16a34a'}},
+    {name:'Special-Mention',type:'bar',stack:'s',data:[15.88,19.01,23.40,7.81],itemStyle:{color:'#84cc16'}},
+    {name:'Substandard',type:'bar',stack:'s',data:[7.82,12.50,18.64,11.68],itemStyle:{color:'#eab308'}},
+    {name:'Doubtful',type:'bar',stack:'s',data:[4.69,6.30,11.96,9.52],itemStyle:{color:'#f97316'}},
+    {name:'Default-Macet',type:'bar',stack:'s',data:[3.85,8.63,19.66,66.79],itemStyle:{color:'#dc2626'}}
+  ]
+});
+
+// C3 — DTI Line
+var lineOpt = function(data, color) {
+  return {
+    tooltip:{trigger:'axis',formatter:'{b}: <b>{c}</b>'},
+    grid:{left:50,right:20,top:20,bottom:40},
+    xAxis:{type:'category',data:buckets,axisLabel:{fontSize:10}},
+    yAxis:{type:'value',axisLabel:{fontSize:10}},
+    series:[{type:'line',smooth:true,symbol:'circle',symbolSize:9,data:data,
+      lineStyle:{width:3,color:color},itemStyle:{color:color},
+      areaStyle:{color:color.replace(')',',0.1)').replace('rgb','rgba')},
+      label:{show:true,position:'top',formatter:'{c}',fontSize:11,fontWeight:'bold'}
+    }]
+  };
+};
+var c3 = echarts.init(document.getElementById('c3'));
+c3.setOption(lineOpt([1.285,1.336,1.523,2.182],'#3b82d4'));
+
+var c4 = echarts.init(document.getElementById('c4'));
+c4.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}</b>'},
+  grid:{left:50,right:20,top:20,bottom:40},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:10}},
+  yAxis:{type:'value',axisLabel:{fontSize:10}},
+  series:[{type:'line',smooth:true,symbol:'circle',symbolSize:9,
+    data:[0.642,0.684,0.787,1.126],
+    lineStyle:{width:3,color:'#ea580c'},itemStyle:{color:'#ea580c'},
+    areaStyle:{color:'rgba(234,88,12,0.1)'},
+    label:{show:true,position:'top',formatter:'{c}',fontSize:11,fontWeight:'bold'},
+    markLine:{silent:true,data:[{yAxis:1.0,lineStyle:{color:'#dc2626',type:'dashed',width:2},
+      label:{formatter:'DSR=1.0 (Defisit)',color:'#dc2626',fontSize:10,position:'end'}}]}
+  }]
+});
+
+var c5 = echarts.init(document.getElementById('c5'));
+c5.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}</b>'},
+  grid:{left:50,right:20,top:20,bottom:40},
+  xAxis:{type:'category',data:buckets,axisLabel:{fontSize:10}},
+  yAxis:{type:'value',max:10,axisLabel:{fontSize:10}},
+  series:[{type:'bar',barMaxWidth:55,
+    data:[
+      {value:2.987,itemStyle:{color:'#16a34a'}},
+      {value:3.637,itemStyle:{color:'#ca8a04'}},
+      {value:4.703,itemStyle:{color:'#ea580c'}},
+      {value:7.131,itemStyle:{color:'#dc2626'}}
+    ],
+    label:{show:true,position:'top',formatter:'{c}',fontSize:11,fontWeight:'bold'}
+  }]
+});
+
+// C6 — Correlation
+var c6 = echarts.init(document.getElementById('c6'));
+var cFeat = ['monthly_income','num_active_apps','debt_to_income','debt_service','credit_limit_util','financial_distress'];
+var cVal = [0.0009,0.5522,0.6313,0.6368,0.6604,0.7310];
+c6.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}</b>'},
+  grid:{left:150,right:30,top:10,bottom:30},
+  xAxis:{type:'value',max:0.85,axisLabel:{fontSize:10}},
+  yAxis:{type:'category',data:cFeat,axisLabel:{fontSize:10}},
+  series:[{type:'bar',barMaxWidth:28,
+    data:cVal.map(function(v){return {value:v,itemStyle:{color:v>0.6?'#dc2626':v>0.5?'#ea580c':'#3b82d4'}}}),
+    label:{show:true,position:'right',formatter:'{c}',fontSize:11,fontWeight:'bold'}
+  }]
+});
+
+// C7 — Feature Importance
+var c7 = echarts.init(document.getElementById('c7'));
+var fFeat = ['age','monthly_income','income_umr','credit_util','daily_interest','debt_to_income','num_active_apps','loan_tenor','debt_service','financial_distress'];
+var fVal = [1.42,1.49,1.53,1.81,2.09,2.14,4.85,18.16,25.78,40.74];
+c7.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}%</b>'},
+  grid:{left:140,right:40,top:10,bottom:30},
+  xAxis:{type:'value',axisLabel:{formatter:'{value}%',fontSize:10}},
+  yAxis:{type:'category',data:fFeat,axisLabel:{fontSize:10}},
+  series:[{type:'bar',barMaxWidth:24,
+    data:fVal.map(function(v){return {value:v,itemStyle:{color:v>20?'#dc2626':v>10?'#ea580c':v>4?'#f97316':'#3b82d4'}}}),
+    label:{show:true,position:'right',formatter:'{c}%',fontSize:10,fontWeight:'bold'}
+  }]
+});
+
+// C8 — Odds Ratio
+var c8 = echarts.init(document.getElementById('c8'));
+c8.setOption({
+  tooltip:{trigger:'axis',formatter:'{b}: <b>{c}×</b>'},
+  grid:{left:170,right:60,top:10,bottom:30},
+  xAxis:{type:'log',axisLabel:{fontSize:10}},
+  yAxis:{type:'category',
+    data:['debt_to_income','daily_interest','credit_limit_util','financial_distress','num_active_apps','debt_service_ratio'],
+    axisLabel:{fontSize:10}},
+  series:[{type:'bar',barMaxWidth:28,
+    data:[
+      {value:1.25,itemStyle:{color:'#3b82d4'}},
+      {value:1.39,itemStyle:{color:'#3b82d4'}},
+      {value:4.60,itemStyle:{color:'#ea580c'}},
+      {value:4.82,itemStyle:{color:'#ea580c'}},
+      {value:12.53,itemStyle:{color:'#dc2626'}},
+      {value:328.05,itemStyle:{color:'#7f1d1d'}}
+    ],
+    label:{show:true,position:'right',formatter:function(p){return p.value+'×'},fontSize:11,fontWeight:'bold'}
+  }]
+});
+
+window.addEventListener('resize',function(){
+  [c1,c2,c3,c4,c5,c6,c7,c8].forEach(function(c){c.resize();});
+});
+</script>
+</body>
+</html>
